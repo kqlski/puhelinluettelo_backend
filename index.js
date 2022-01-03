@@ -1,7 +1,23 @@
 const { response } = require('express');
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 app.use(express.json())
+app.use(morgan((tokens,req,res)=>{
+    const method = tokens.method(req,res)
+    const postData = method==='POST'
+    ?JSON.stringify(req.body)
+    :null
+    return [
+        method,
+        tokens.url(req,res),
+        tokens.status(req,res),
+        tokens.res(req,res,'content-length'),'-',
+        tokens['response-time'](req,res),'ms',
+        postData
+    ].join(' ')
+}))
+
 let persons = [
     {
         name: "Arto Hellas",
@@ -62,7 +78,7 @@ app.post('/api/persons', (req, res) => {
             error: 'name must be unique'
         })
     }
-    console.log(body);
+    console.log(body,typeof body);
     console.log(body.name);
     console.log(body.number);
     const person = {
@@ -79,6 +95,7 @@ app.delete('/api/persons/:id', (req, res) => {
     persons = persons.filter(n => n.id !== id)
     res.status(204).end()
 })
+
 
 
 const PORT = 3001
