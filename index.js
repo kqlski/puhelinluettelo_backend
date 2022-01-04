@@ -59,14 +59,10 @@ app.get('/api/persons/:id', (req, res,next) => {
 })
 
 //create a new person
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res,next) => {
 
     const body = req.body
-    if (!body.name || !body.number) {
-        return res.status(400).json({
-            error: 'not enough information'
-        })
-    }
+
     console.log(body, typeof body);
     console.log(body.name);
     console.log(body.number);
@@ -77,6 +73,7 @@ app.post('/api/persons', (req, res) => {
     person.save().then(savedPerson => {
         res.json(savedPerson)
     })
+    .catch(error=>next(error))
 })
 //update information for a person
 app.put('/api/persons/:id', (req, res, next) => {
@@ -102,9 +99,13 @@ app.delete('/api/persons/:id', (req, res, next) => {
 })
 const errorHandler = (error, request, response, next) => {
     console.log(error);
+    console.log('name ',error.name);
 
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
+    }
+    if(error.name=='ValidationError'){
+        return response.status(400).send(error.message)
     }
 
     next(error)
